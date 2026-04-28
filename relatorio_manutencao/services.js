@@ -120,8 +120,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p><strong>Conclusão:</strong> ${s.conclusao}</p>
                 ${s.imagens.length > 0 ? `
                     <div class="service-card-images">
-                        ${s.imagens.map(img => `
-                            <img src="${img}" alt="Miniatura" class="service-card-thumbnail">
+                        ${s.imagens.map(imgData => `
+                            <div class="thumbnail-container">
+                                <img src="${imgData.src || imgData}" alt="Miniatura" class="service-card-thumbnail">
+                                ${imgData.caption ? `<p class="thumbnail-caption">${imgData.caption}</p>` : ''}
+                            </div>
                         `).join('')}
                     </div>` : ''}
                 <div class="service-date">Registrado em: ${s.data}</div>
@@ -330,18 +333,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 servico.imagens.forEach((imgData, i) => {
                     const imgIndexInRow = i % imagesPerRow;
+                    const currentImg = typeof imgData === 'string' ? { src: imgData, caption: '' } : imgData;
 
                     if (i > 0 && imgIndexInRow === 0) {
-                        innerY += imgHeight + gap;
+                        innerY += imgHeight + gap + 10;
                     }
 
                     const currentX = startX + imgIndexInRow * (imgWidth + gap);
 
                     try {
-                        doc.addImage(imgData, 'JPEG', currentX, innerY, imgWidth, imgHeight);
+                        doc.addImage(currentImg.src, 'JPEG', currentX, innerY, imgWidth, imgHeight);
                         doc.setDrawColor(secondaryColor);
                         doc.setLineWidth(0.1);
                         doc.rect(currentX, innerY, imgWidth, imgHeight);
+
+                        if (currentImg.caption) {
+                            doc.setFontSize(7);
+                            doc.setFont(undefined, 'normal');
+                            doc.setTextColor(secondaryColor);
+                            doc.text(currentImg.caption, currentX, innerY + imgHeight + 3, { maxWidth: imgWidth });
+                        }
                     } catch (e) {
                         console.error("Erro ao adicionar imagem ao PDF:", e);
                         doc.text("Erro", currentX + imgWidth / 2, innerY + imgHeight / 2, { align: 'center' });
@@ -385,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
             height += 8;
             const imagesPerRow = 4;
             const numRows = Math.ceil(servico.imagens.length / imagesPerRow);
-            height += numRows * (40 + 4);
+            height += numRows * (40 + 4 + 10);
         }
 
         return height;

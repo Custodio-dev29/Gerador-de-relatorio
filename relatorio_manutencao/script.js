@@ -56,6 +56,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Delegação de eventos para botões de ação nos cards
         imagePreview.addEventListener('click', handleImagePreviewClick);
+
+        // Listener para atualização de legendas
+        imagePreview.addEventListener('input', (e) => {
+            if (e.target.classList.contains('image-caption')) {
+                const index = parseInt(e.target.dataset.index, 10);
+                imagens[index].caption = e.target.value;
+            }
+        });
     }
 
     // --- GERENCIAMENTO DE ESTADO (LocalStorage) ---
@@ -80,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const file of files) {
             try {
                 const resizedImage = await redimensionarImagem(file, 1024, 1024, 0.7);
-                imagens.push(resizedImage);
+                imagens.push({ src: resizedImage, caption: '' });
             } catch (error) {
                 console.error('Erro ao redimensionar imagem:', error);
                 alert('Houve um erro ao processar uma das imagens.');
@@ -126,7 +134,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const div = document.createElement('div');
             div.className = 'image-item';
             div.innerHTML = `
-                <img src="${img}" alt="Imagem ${index + 1}">
+                <img src="${img.src}" alt="Imagem ${index + 1}">
+                <input type="text" class="image-caption" data-index="${index}" placeholder="Legenda..." value="${img.caption || ''}">
                 <button class="remove-img" data-index="${index}">×</button>
             `;
             imagePreview.appendChild(div);
